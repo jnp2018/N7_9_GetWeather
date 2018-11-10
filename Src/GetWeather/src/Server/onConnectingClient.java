@@ -145,7 +145,6 @@ public class onConnectingClient extends Thread {
                         oos.writeObject(xml);
                         oos.flush();
                     } catch (Exception ex) {
-                        System.out.println("Erro to read Object from Client");
                         this.socket.close();
                     }
                 } else {
