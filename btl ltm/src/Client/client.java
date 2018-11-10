@@ -17,12 +17,18 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
 import org.json.JSONObject;
+import org.json.XML;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  *
@@ -37,6 +43,7 @@ public class client implements Serializable {
     private Document xmlReceived;
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
+    private weatherOfCity weather;
 
     public client() {
         port = 80;
@@ -46,6 +53,7 @@ public class client implements Serializable {
         xmlReceived = null;
         ois = null;
         oos = null;
+        weather = new weatherOfCity();
     }
 
     public void connect(String host, int port) {
@@ -60,13 +68,22 @@ public class client implements Serializable {
         }
     }
 
+    public void getCapitalCity() {
+        if (this.socket != null) {
+            try {
+                this.listCapital = (ArrayList<Pair<String, String>>) this.ois.readObject();
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+
+    }
+
     public void requestGetWeather(String city) {
         if (this.socket != null) {
             try {
-//                ObjectOutputStream out = new ObjectOutputStream(this.socket.getOutputStream());
                 this.oos.writeObject(city);
                 this.oos.flush();
-//                out.close();
             } catch (Exception ex) {
                 Logger.getLogger(client.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -77,10 +94,8 @@ public class client implements Serializable {
         JSONObject json = null;
         if (this.socket != null) {
             try {
-//                ObjectInputStream oi = new ObjectInputStream(this.socket.getInputStream());
                 Object o = this.ois.readObject();
                 json = new JSONObject(o.toString());
-//                oi.close();
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
             }
@@ -92,10 +107,8 @@ public class client implements Serializable {
         Document doc = null;
         if (this.socket != null) {
             try {
-//                ObjectInputStream oi = new ObjectInputStream(this.socket.getInputStream());
                 Object o = this.ois.readObject();
                 doc = (Document) o;
-//                oi.close();
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
             }
@@ -103,16 +116,78 @@ public class client implements Serializable {
         this.xmlReceived = doc;
     }
 
-    public void getCapitalCity() {
-        if (this.socket != null) {
-            try {
-//                ObjectInputStream oi = new ObjectInputStream(this.socket.getInputStream());
-                this.listCapital = (ArrayList<Pair<String, String>>) this.ois.readObject();
-//                oi.close();
-            } catch (Exception ex) {
-                System.out.println(ex.getMessage());
+    public String formatXml(Document doc) {
+        Writer wt = null;
+        try {
+            OutputFormat out = new OutputFormat(doc);
+            out.setLineWidth(65);
+            out.setIndenting(true);
+            out.setIndent(5);
+            wt = new StringWriter();
+            XMLSerializer serializer = new XML11Serializer(wt, out);
+            serializer.serialize(doc);
+
+        } catch (IOException ex) {
+            Logger.getLogger(client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return wt.toString();
+    }
+
+    public void readXml(Document doc) {
+        Element root = doc.getDocumentElement();
+        NodeList listNodeChile = root.getChildNodes();
+        for (int i = 0; i < listNodeChile.getLength(); i++) {
+            Node node = listNodeChile.item(i);
+            NamedNodeMap attrs = node.getAttributes();
+            switch (node.getNodeName()) {
+                case "city":
+                    this.weather.setCityName(attrs.getNamedItem("name").getNodeValue());
+                    break;
+                case "temperature":
+                    this.weather.setNhietDo(Float.parseFloat(attrs.getNamedItem("value").getNodeValue())-272);
+                    break;
+                case "humidity":
+                    this.weather.setDoAm(Float.parseFloat(attrs.getNamedItem("value").getNodeValue()));
+                    break;
+                case "pressure":
+                    this.weather.setApSuat(Float.parseFloat(attrs.getNamedItem("value").getNodeValue()));
+                    break;
+                case "clouds":
+                    this.weather.setMay(attrs.getNamedItem("name").getNodeValue());
+                    break;
+                case "visibility":
+                    try {
+                        this.weather.setTamNhin(Float.parseFloat(attrs.getNamedItem("value").getNodeValue()));
+                    } catch (NullPointerException ex) {
+                        break;
+                    }
+
+                    break;
+                case "lastupdate":
+                    this.weather.setLastUpdate(attrs.getNamedItem("value").getNodeValue());
+                    break;
+                case "weather":
+                    this.weather.setThoitiet(attrs.getNamedItem("value").getNodeValue());
+                    break;
+
             }
         }
+
+    }
+
+    public JSONObject parseXmlToJson(String xml) {
+        return XML.toJSONObject(xml);
+
+    }
+
+    public String parseJsontoXmlStrting(JSONObject json) {
+        return XML.toString(json);
+    }
+
+    public void closeConnection() throws IOException {
+        this.ois.close();
+        this.oos.close();
+        this.socket.close();
 
     }
 
@@ -136,52 +211,24 @@ public class client implements Serializable {
         return xmlReceived;
     }
 
-    public void setXmlReceived(Document xmlReceived) {
-        this.xmlReceived = xmlReceived;
-    }
-
-    public String formatXml(Document doc) {
-        Writer wt = null;
-        try {
-            OutputFormat out = new OutputFormat(doc);
-            out.setLineWidth(65);
-            out.setIndenting(true);
-            out.setIndent(5);
-            wt = new StringWriter();
-            XMLSerializer serializer = new XML11Serializer(wt, out);
-            serializer.serialize(doc);
-
-        } catch (IOException ex) {
-            Logger.getLogger(client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return wt.toString();
-    }
-    
-    public JSONObject parseXmlToJson(Document doc) {
-        JSONObject json = null;
-
-        return json;
-    }
-
-    public Document parseJsontoXmlDocument(JSONObject json) {
-        Document doc = null;
-
-        return doc;
-    }
-
     public Socket getSocket() {
         return socket;
+    }
+
+    public void setXmlReceived(Document xmlReceived) {
+        this.xmlReceived = xmlReceived;
     }
 
     public void setSocket(Socket socket) {
         this.socket = socket;
     }
 
-    public void closeConnection() throws IOException {
-        this.ois.close();
-        this.oos.close();
-        this.socket.close();
+    public weatherOfCity getWeather() {
+        return weather;
+    }
 
+    public void setWeather(weatherOfCity weather) {
+        this.weather = weather;
     }
 
 }

@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -63,10 +66,16 @@ public class ClientGUI extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         cityListComboBox = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        showValues = new javax.swing.JTextArea();
         showJson = new javax.swing.JButton();
         showXml = new javax.swing.JButton();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        showValues = new javax.swing.JTextArea();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -86,10 +95,6 @@ public class ClientGUI extends javax.swing.JFrame {
 
         jLabel1.setText("Choose a city");
 
-        showValues.setColumns(20);
-        showValues.setRows(5);
-        jScrollPane1.setViewportView(showValues);
-
         showJson.setText("Show Json");
         showJson.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -104,28 +109,59 @@ public class ClientGUI extends javax.swing.JFrame {
             }
         });
 
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Thành phố", "Thời tiết ", "Nhiệt độ (°C)", "Độ ẩm(%)", "Áp suất(hPa)", "Mây", "Tầm nhìn"
+            }
+        ));
+        jScrollPane2.setViewportView(jTable1);
+
+        jTabbedPane1.addTab("Thông tin thời tiết", jScrollPane2);
+
+        showValues.setColumns(20);
+        showValues.setRows(5);
+        jScrollPane1.setViewportView(showValues);
+
+        jTabbedPane1.addTab("XML/Json String", jScrollPane1);
+
+        jLabel2.setText("Ngày: ");
+
+        jLabel4.setText("yyyy-mm-ddThh-mm-ss");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(55, 55, 55)
-                .addComponent(jLabel1)
-                .addGap(64, 64, 64)
-                .addComponent(cityListComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1)
-                .addGap(81, 81, 81))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(29, 29, 29)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 544, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(40, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(255, 255, 255)
                 .addComponent(showJson)
-                .addGap(45, 45, 45)
+                .addGap(53, 53, 53)
                 .addComponent(showXml)
-                .addGap(68, 68, 68))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(25, 25, 25)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 779, Short.MAX_VALUE)
+                .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addGap(54, 54, 54)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2))
+                .addGap(57, 57, 57)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(cityListComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(49, 49, 49)
+                        .addComponent(jButton1))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -135,13 +171,18 @@ public class ClientGUI extends javax.swing.JFrame {
                     .addComponent(jButton1)
                     .addComponent(cityListComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1))
-                .addGap(37, 37, 37)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 333, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addGap(8, 8, 8)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(35, 35, 35)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(showJson)
                     .addComponent(showXml))
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addContainerGap(26, Short.MAX_VALUE))
         );
 
         pack();
@@ -159,24 +200,37 @@ public class ClientGUI extends javax.swing.JFrame {
         this.c.requestGetWeather(citySelected);
         this.c.receiveWeatherJson();
         this.c.receiveWeatherXml();
-        this.showJson.setEnabled(true);
-        this.showXml.setEnabled(true);
+        if (this.c.getJsonReceived() == null) {
+            JOptionPane.showMessageDialog(null, "Unknow weather of this city! Choose other citty! Sorry");
+        } else {
+            this.c.readXml(this.c.getXmlReceived());
+            this.showJson.setEnabled(true);
+            this.showXml.setEnabled(true);
+            DefaultTableModel model = (DefaultTableModel) this.jTable1.getModel();
+            model.addRow(this.c.getWeather().toObject());
+            this.jLabel4.setText(this.c.getWeather().getLastUpdate());
+        }
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void showJsonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showJsonActionPerformed
         // TODO add your handling code here:
         this.showValues.setRows(10);
+        this.jTabbedPane1.setSelectedIndex(1);
         Gson g = new GsonBuilder().setPrettyPrinting().create();
         String prettyJson = g.toJson(c.getJsonReceived());
         this.showValues.setText(prettyJson);
+        System.out.println(c.parseJsontoXmlStrting(c.getJsonReceived()));
 
     }//GEN-LAST:event_showJsonActionPerformed
 
     private void showXmlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showXmlActionPerformed
         // TODO add your handling code here:
+        this.jTabbedPane1.setSelectedIndex(1);
         String s = c.formatXml(c.getXmlReceived());
         this.showValues.removeAll();
         this.showValues.setText(s);
+        System.out.println(c.getWeather().toString());
     }//GEN-LAST:event_showXmlActionPerformed
 
     /**
@@ -218,7 +272,13 @@ public class ClientGUI extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> cityListComboBox;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTable jTable1;
     private javax.swing.JButton showJson;
     private javax.swing.JTextArea showValues;
     private javax.swing.JButton showXml;
