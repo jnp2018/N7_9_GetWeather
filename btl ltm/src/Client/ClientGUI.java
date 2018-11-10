@@ -114,7 +114,7 @@ public class ClientGUI extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Thành phố", "Thời tiết ", "Nhiệt độ (°C)", "Độ ẩm(%)", "Áp suất(hPa)", "Mây", "Tầm nhìn"
+                "Thành phố", "Thời tiết ", "Nhiệt độ (°C)", "Độ ẩm(%)", "Áp suất(hPa)", "Mây", "Tầm nhìn(m)"
             }
         ));
         jScrollPane2.setViewportView(jTable1);

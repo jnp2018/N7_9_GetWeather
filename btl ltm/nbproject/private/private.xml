@@ -3,11 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/NetbeanProjects/BTL%20LTM/src/Client/clientRun.java</file>
-            <file>file:/E:/NetbeanProjects/BTL%20LTM/src/Client/client.java</file>
-            <file>file:/E:/NetbeanProjects/BTL%20LTM/src/Server/serverRun.java</file>
-            <file>file:/E:/NetbeanProjects/BTL%20LTM/src/Server/sv.java</file>
-            <file>file:/E:/NetbeanProjects/BTL%20LTM/src/Server/myServer.java</file>
+            <file>file:/D:/Tun/N7_9_GetWeather/btl%20ltm/src/Client/ClientGUI.java</file>
+            <file>file:/D:/Tun/N7_9_GetWeather/btl%20ltm/src/Client/client.java</file>
+            <file>file:/D:/Tun/N7_9_GetWeather/btl%20ltm/src/Server/serverRun.java</file>
+            <file>file:/D:/Tun/N7_9_GetWeather/btl%20ltm/src/Server/onConnectingClient.java</file>
+            <file>file:/D:/Tun/N7_9_GetWeather/btl%20ltm/src/Server/myServer.java</file>
+            <file>file:/D:/Tun/N7_9_GetWeather/btl%20ltm/src/Client/weatherOfCity.java</file>
         </group>
     </open-files>
 </project-private>
