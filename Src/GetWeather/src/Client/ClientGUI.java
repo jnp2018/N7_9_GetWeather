@@ -8,11 +8,18 @@ package Client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
+import java.awt.Font;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -30,19 +37,23 @@ public class ClientGUI extends javax.swing.JFrame {
     /**
      * Creates new form ClientGUI
      */
-    private ArrayList<Pair<String, String>> listCapitalCity;
     private client c;
 
     public ClientGUI() {
-        this.listCapitalCity = new ArrayList<>();
         initComponents();
         setLocationRelativeTo(this);
-        this.showValues.setEnabled(false);
+        this.startClient();
+        this.setEnable(false);
+        this.addImage("snows");
+        this.cityLable.setFont(new Font(this.cityLable.getFont().getName(), WIDTH, 14));
+        this.tempLable.setFont(new Font(this.tempLable.getFont().getName(), WIDTH, 12));
+        this.weatherLable.setFont(new Font(this.weatherLable.getFont().getName(), WIDTH, 14));
+        this.weatherLable.setHorizontalAlignment((int) CENTER_ALIGNMENT);
+    }
+
+    public void startClient() {
         c = new client();
         c.connect("localhost", 80);
-        this.showValues.setEnabled(true);
-        this.showJson.setEnabled(false);
-        this.showXml.setEnabled(false);
         c.getCapitalCity();
         this.cityListComboBox.removeAllItems();
         for (int i = 0; i < c.getListCapital().size(); i++) {
@@ -51,7 +62,68 @@ public class ClientGUI extends javax.swing.JFrame {
                 this.cityListComboBox.addItem(items);
             }
         }
-        this.showValues.setSize(50, 50);
+    }
+
+    public void setEnable(boolean b) {
+        this.showValues.setEnabled(b);
+        this.showJson.setEnabled(b);
+        this.showXml.setEnabled(b);
+    }
+
+    public void addImage(String weather) {
+        String urlImage = weather.contains("snow") ? "snow.png"
+                : weather.contains("scattered clouds") ? "scattered clouds.png"
+                : weather.contains("mist") ? "mist.png"
+                : weather.contains("overcast clouds") ? "overcast clouds.png"
+                : weather.contains("clouds") ? "clouds.png"
+                : weather.contains("rain") ? "rain.png"
+                : "clear.png";
+        try {
+            BufferedImage bi = ImageIO.read(new File(urlImage));
+            int xlb = this.iconLable.getWidth(), ylb = this.iconLable.getHeight();
+            int ximg = bi.getWidth(), yimg = bi.getHeight();
+            if (xlb / ylb > ximg / yimg) {
+                ximg = ylb * ximg / yimg;
+                yimg = ylb;
+
+            } else {
+                yimg = xlb * yimg / ximg;
+                ximg = xlb;
+
+            }
+            System.out.println("");
+            ImageIcon icon = new ImageIcon(bi.getScaledInstance(ximg, yimg, bi.SCALE_SMOOTH));
+            this.iconLable.setIcon(icon);
+        } catch (IOException ex) {
+            System.out.println("Lỗi đọc hình ảnh!");
+        }
+
+    }
+
+    public void getData(String city) {
+        String citySelected = city;
+        System.out.println(citySelected);
+        this.c.requestGetWeather(citySelected);
+        this.c.receiveWeatherJson();
+        this.c.receiveWeatherXml();
+        if (this.c.getJsonReceived() == null) {
+            JOptionPane.showMessageDialog(null, "Server doesn't support this city!");
+        } else {
+            this.c.readXml(this.c.getXmlReceived());
+        }
+    }
+
+    public void putData(client c) {
+        this.setEnable(true);
+        this.addImage(c.getWeather().getThoitiet());
+        this.cityLable.setText(c.getWeather().getCityName());
+        this.tempLable.setText(String.format("%.2f °C", c.getWeather().getNhietDo()));
+        this.weatherLable.setText(c.getWeather().getThoitiet());
+        DefaultTableModel model = (DefaultTableModel) this.jTable1.getModel();
+        model.addRow(c.getWeather().toObject());
+        this.jLabel4.setText(c.getWeather().getLastUpdate());
+        this.jTabbedPane1.setSelectedIndex(0);
+
     }
 
     /**
@@ -76,6 +148,15 @@ public class ClientGUI extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
+        panelImage = new javax.swing.JPanel();
+        iconLable = new javax.swing.JLabel();
+        tempLable = new javax.swing.JLabel();
+        cityLable = new javax.swing.JLabel();
+        weatherLable = new javax.swing.JLabel();
+        textSearch = new javax.swing.JTextField();
+        buttonSearch = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        countryLable = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -114,9 +195,14 @@ public class ClientGUI extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Thành phố", "Thời tiết ", "Nhiệt độ (°C)", "Độ ẩm(%)", "Áp suất(hPa)", "Mây", "Tầm nhìn(m)"
+                "Tên", "Thời tiết", "Nhiệt độ", "Độ ẩm", "Áp suất", "Mây", "Tầm nhìn xa"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(jTable1);
 
         jTabbedPane1.addTab("Thông tin thời tiết", jScrollPane2);
@@ -131,6 +217,62 @@ public class ClientGUI extends javax.swing.JFrame {
 
         jLabel4.setText("yyyy-mm-ddThh-mm-ss");
 
+        iconLable.setText("icon");
+
+        tempLable.setText("Temp °C");
+
+        cityLable.setText("CityName");
+
+        weatherLable.setText("Weatther");
+
+        javax.swing.GroupLayout panelImageLayout = new javax.swing.GroupLayout(panelImage);
+        panelImage.setLayout(panelImageLayout);
+        panelImageLayout.setHorizontalGroup(
+            panelImageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelImageLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panelImageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(iconLable, javax.swing.GroupLayout.PREFERRED_SIZE, 208, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelImageLayout.createSequentialGroup()
+                        .addComponent(cityLable, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(tempLable, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelImageLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(weatherLable, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(56, 56, 56))
+        );
+        panelImageLayout.setVerticalGroup(
+            panelImageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelImageLayout.createSequentialGroup()
+                .addComponent(iconLable, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(weatherLable)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(panelImageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cityLable)
+                    .addComponent(tempLable))
+                .addContainerGap())
+        );
+
+        textSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                textSearchActionPerformed(evt);
+            }
+        });
+
+        buttonSearch.setText("Search");
+        buttonSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                buttonSearchActionPerformed(evt);
+            }
+        });
+
+        jLabel5.setText("Country");
+
+        countryLable.setText("Country Name");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -141,27 +283,44 @@ public class ClientGUI extends javax.swing.JFrame {
                 .addGap(53, 53, 53)
                 .addComponent(showXml)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 779, Short.MAX_VALUE)
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addGap(54, 54, 54)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addGap(57, 57, 57)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(cityListComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(49, 49, 49)
-                        .addComponent(jButton1))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 550, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(54, 54, 54)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel5))
+                        .addGap(57, 57, 57)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(cityListComboBox, 0, 112, Short.MAX_VALUE)
+                            .addComponent(countryLable, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(49, 49, 49)
+                                .addComponent(jButton1))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(textSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(26, 26, 26)
+                        .addComponent(buttonSearch)
+                        .addGap(67, 67, 67))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 0, Short.MAX_VALUE))
+                        .addComponent(panelImage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(46, 46, 46))))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(18, 18, 18)
+                .addComponent(jLabel2)
+                .addGap(57, 57, 57)
+                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -170,19 +329,33 @@ public class ClientGUI extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
                     .addComponent(cityListComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(textSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(buttonSearch))
                 .addGap(8, 8, 8)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 307, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(35, 35, 35)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(showJson)
-                    .addComponent(showXml))
-                .addContainerGap(26, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel5)
+                        .addComponent(countryLable))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(44, 44, 44)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel4))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(35, 35, 35))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(panelImage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(24, 24, 24)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(showJson)
+                            .addComponent(showXml))))
+                .addContainerGap(40, Short.MAX_VALUE))
         );
 
         pack();
@@ -194,28 +367,23 @@ public class ClientGUI extends javax.swing.JFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        this.showValues.setText("");
-        String citySelected = this.cityListComboBox.getSelectedItem().toString();
-        System.out.println(citySelected);
-        this.c.requestGetWeather(citySelected);
-        this.c.receiveWeatherJson();
-        this.c.receiveWeatherXml();
-        if (this.c.getJsonReceived() == null) {
-            JOptionPane.showMessageDialog(null, "Unknow weather of this city! Choose other citty! Sorry");
-        } else {
-            this.c.readXml(this.c.getXmlReceived());
-            this.showJson.setEnabled(true);
-            this.showXml.setEnabled(true);
-            DefaultTableModel model = (DefaultTableModel) this.jTable1.getModel();
-            model.addRow(this.c.getWeather().toObject());
-            this.jLabel4.setText(this.c.getWeather().getLastUpdate());
+        String city = this.cityListComboBox.getSelectedItem().toString();
+        for (int i = 0; i < this.c.getListCapital().size(); i++) {
+            String name = this.c.getListCapital().get(i).getKey();
+            if (city.equalsIgnoreCase(name)) {
+                this.countryLable.setText(this.c.getListCapital().get(i).getValue());
+                break;
+            }
         }
-
+        this.getData(this.cityListComboBox.getSelectedItem().toString());
+        if (this.c.getJsonReceived() != null) {
+            putData(c);
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void showJsonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showJsonActionPerformed
         // TODO add your handling code here:
-        this.showValues.setRows(10);
+
         this.jTabbedPane1.setSelectedIndex(1);
         Gson g = new GsonBuilder().setPrettyPrinting().create();
         String prettyJson = g.toJson(c.getJsonReceived());
@@ -230,8 +398,32 @@ public class ClientGUI extends javax.swing.JFrame {
         String s = c.formatXml(c.getXmlReceived());
         this.showValues.removeAll();
         this.showValues.setText(s);
-        System.out.println(c.getWeather().toString());
     }//GEN-LAST:event_showXmlActionPerformed
+
+    private void textSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textSearchActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_textSearchActionPerformed
+
+    private void buttonSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonSearchActionPerformed
+        // TODO add your handling code here:
+        if (!this.textSearch.getText().equalsIgnoreCase("")) {
+            this.getData(this.textSearch.getText());
+            if (this.c.getJsonReceived() != null) {
+                putData(c);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Please enter your city!");
+        }
+    }//GEN-LAST:event_buttonSearchActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        // TODO add your handling code here:
+        int row = this.jTable1.getSelectedRow();
+        this.addImage(this.jTable1.getValueAt(row, 1).toString());
+        this.cityLable.setText(this.jTable1.getValueAt(row, 0).toString());
+        this.tempLable.setText(this.jTable1.getValueAt(row, 2).toString() + " °C");
+
+    }//GEN-LAST:event_jTable1MouseClicked
 
     /**
      * @param args the command line arguments
@@ -269,18 +461,27 @@ public class ClientGUI extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton buttonSearch;
+    private javax.swing.JLabel cityLable;
     private javax.swing.JComboBox<String> cityListComboBox;
+    private javax.swing.JLabel countryLable;
+    private javax.swing.JLabel iconLable;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTable jTable1;
+    private javax.swing.JPanel panelImage;
     private javax.swing.JButton showJson;
     private javax.swing.JTextArea showValues;
     private javax.swing.JButton showXml;
+    private javax.swing.JLabel tempLable;
+    private javax.swing.JTextField textSearch;
+    private javax.swing.JLabel weatherLable;
     // End of variables declaration//GEN-END:variables
 }

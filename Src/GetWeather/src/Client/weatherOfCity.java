@@ -5,13 +5,14 @@
  */
 package Client;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
  *
  * @author tun
  */
-public class weatherOfCity {
+public class weatherOfCity implements Serializable{
 
     private String cityName,lastUpdate;
     private String  may, thoitiet;
@@ -29,7 +30,7 @@ public class weatherOfCity {
         this.lastUpdate = lastUpdate;
         this.thoitiet = thoitiet;
     }
-
+    
     public String getCityName() {
         return cityName;
     }

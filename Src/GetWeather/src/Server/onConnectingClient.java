@@ -23,6 +23,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
+import sun.net.ConnectionResetException;
 
 /**
  *
@@ -30,8 +31,9 @@ import org.w3c.dom.Document;
  */
 public class onConnectingClient extends Thread {
 
+    private final String weatherWeek = "http://api.openweathermap.org/data/2.5/forecast/daily?q=";
     private final String defaultApi = "http://api.openweathermap.org/data/2.5/weather?q=";
-    private final String appId = "appid=30fa7a7a0f80ef002f526dea5f2a8c3c";
+    private final String appId = "appid=927d09bc49dbee6aac7f5cb1df707542";
     private final String xmlMode = "mode=xml";
     private final String cityApi = "https://restcountries.eu/rest/v2/all";
 
@@ -59,7 +61,8 @@ public class onConnectingClient extends Thread {
                 jsOb = new JSONObject(jsonStr);
             }
         } catch (Exception ex) {
-            Logger.getLogger(myServer.class.getName()).log(Level.SEVERE, null, ex);
+            jsOb = null;
+            System.out.println("Not found this city on serer");
         }
         return jsOb;
     }
@@ -73,11 +76,25 @@ public class onConnectingClient extends Thread {
             DocumentBuilder db = dbf.newDocumentBuilder();
             xml = db.parse(conn.getInputStream());
         } catch (Exception ex) {
-            Logger.getLogger(myServer.class.getName()).log(Level.SEVERE, null, ex);
+            xml = null;
+            System.out.println("Not found this city on serer");
         }
         return xml;
     }
-
+    public Document getWeekWeatherXml(String city) {
+        Document xml = null;
+        try {
+            URL apiWeather = new URL(this.weatherWeek + city + "&" + this.appId + "&" + this.xmlMode);
+            URLConnection conn = apiWeather.openConnection();
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            xml = db.parse(conn.getInputStream());
+        } catch (Exception ex) {
+            xml = null;
+            System.out.println("Not found this city on serer");
+        }
+        return xml;
+    }
     public String xmlString(String city) {
         String s = "";
         try {
@@ -93,15 +110,6 @@ public class onConnectingClient extends Thread {
             Logger.getLogger(myServer.class.getName()).log(Level.SEVERE, null, ex);
         }
         return s;
-    }
-
-    public void senCapital(Object o) {
-        try {
-            oos.writeObject(o);
-            oos.flush();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
     }
 
     public ArrayList<Pair<String, String>> getAllCapital(String url) {
@@ -128,10 +136,11 @@ public class onConnectingClient extends Thread {
     public void run() {
         try {
             this.listCapital = getAllCapital(cityApi);
-            this.senCapital(this.listCapital);
+            oos.writeObject(this.listCapital);
+            oos.flush();
             System.out.println("Send an object: listCapital, size: " + this.listCapital.size()
-                    + " to: " + socket.getLocalAddress());
-            while (!socket.isClosed()) {
+                    + " to: " + socket.getInetAddress());
+            while (socket.isConnected()) {
                 Object o = null;
                 if (ois.available() >= 0) {
                     try {
@@ -144,8 +153,14 @@ public class onConnectingClient extends Thread {
                         oos.flush();
                         oos.writeObject(xml);
                         oos.flush();
-                    } catch (Exception ex) {
+                    } catch (ConnectionResetException reset) {
                         this.socket.close();
+                    } catch (Exception ex) {
+                        oos.writeObject(null);
+                        System.out.println("Send Json Done!");
+                        oos.flush();
+                        oos.writeObject(null);
+                        oos.flush();
                     }
                 } else {
                     System.out.println("No Object request");
@@ -153,11 +168,12 @@ public class onConnectingClient extends Thread {
                 }
                 if (socket.isClosed()) {
                     break;
+                    
                 }
             }
             System.out.println("Client quit!!");
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Client quit!!");
             try {
                 this.socket.close();
             } catch (Exception ex1) {

@@ -44,6 +44,7 @@ public class client implements Serializable {
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
     private weatherOfCity weather;
+    private ArrayList<weatherOfCity> listWeekWeather;
 
     public client() {
         port = 80;
@@ -54,6 +55,7 @@ public class client implements Serializable {
         ois = null;
         oos = null;
         weather = new weatherOfCity();
+        listWeekWeather = new ArrayList<>();
     }
 
     public void connect(String host, int port) {
@@ -144,7 +146,7 @@ public class client implements Serializable {
                     this.weather.setCityName(attrs.getNamedItem("name").getNodeValue());
                     break;
                 case "temperature":
-                    this.weather.setNhietDo(Float.parseFloat(attrs.getNamedItem("value").getNodeValue())-272);
+                    this.weather.setNhietDo(Float.parseFloat(attrs.getNamedItem("value").getNodeValue()) - 272);
                     break;
                 case "humidity":
                     this.weather.setDoAm(Float.parseFloat(attrs.getNamedItem("value").getNodeValue()));
@@ -161,7 +163,6 @@ public class client implements Serializable {
                     } catch (NullPointerException ex) {
                         break;
                     }
-
                     break;
                 case "lastupdate":
                     this.weather.setLastUpdate(attrs.getNamedItem("value").getNodeValue());
@@ -172,6 +173,10 @@ public class client implements Serializable {
 
             }
         }
+
+    }
+
+    public void readWeekWeather(Document doc) {
 
     }
 

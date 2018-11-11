@@ -56,6 +56,7 @@ public class myServer implements Serializable {
             serverSocket = new ServerSocket(80);
 //            this.listCapital = getAllCapital(cityApi);
             System.out.println("Running...!");
+            System.out.println("Ready to connect! Waiting client......");
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
@@ -74,8 +75,13 @@ public class myServer implements Serializable {
                 System.out.println(ex.getMessage());
                 System.out.println("Err to connet to client");
 
-            } catch (Exception ex) {
-                Logger.getLogger(myServer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NullPointerException ex ) {
+                 System.out.println("Is your server running??");
+                break;
+            } 
+            catch (Exception ex) {
+                System.out.println("Server Stopped!");
+                break;
             }
 
         }
