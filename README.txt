@@ -9,9 +9,9 @@ Server:
 	- response list Pait<captial, countryName> to client
 	- response JSONOject to client
 	- response Document xml to client
-Clinet:
+Client:
 	- request get weather by cityname
 	- get JSONOject , document xml
 	- format JsonObject and document prety and show  
 	- read JsonObject get Temp, humidity, wind
-
+	- search weather of city by names
